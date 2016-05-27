@@ -13,8 +13,7 @@
 #include <string.h>
 #include "util.h"
 #include "ratt.h"
-#include "ks0108.h"
-#include "glcd.h"
+#include "displayAdapter.h"
 
 // These store the current button states for all 3 buttons. We can 
 // then query whether the buttons are pressed and released or pressed

@@ -17,8 +17,7 @@
 
 #include "util.h"
 #include "ratt.h"
-#include "ks0108.h"
-#include "glcd.h"
+#include "displayAdapter.h"
 #include "font5x7.h"
 
 extern volatile uint8_t time_s, time_m, time_h;
@@ -161,9 +160,9 @@ void setscore(void)
 
 void initanim(void) {
   DEBUG(putstring("screen width: "));
-  DEBUG(uart_putw_dec(GLCD_XPIXELS));
+  DEBUG(uart_putw_dec(DISPLAY_XPIXELS));
   DEBUG(putstring("\n\rscreen height: "));
-  DEBUG(uart_putw_dec(GLCD_YPIXELS));
+  DEBUG(uart_putw_dec(DISPLAY_YPIXELS));
   DEBUG(putstring_nl(""));
 
   leftpaddle_y = 25;
@@ -178,18 +177,18 @@ void initanim(void) {
 
 void initdisplay(uint8_t inverted) {
 
-  glcdFillRectangle(0, 0, GLCD_XPIXELS, GLCD_YPIXELS, inverted);
+  displayFillRectangle(0, 0, DISPLAY_XPIXELS, DISPLAY_YPIXELS, inverted);
   
   // draw top 'line'
-  glcdFillRectangle(0, 0, GLCD_XPIXELS, 2, ! inverted);
+  displayFillRectangle(0, 0, DISPLAY_XPIXELS, 2, ! inverted);
   
   // bottom line
-  glcdFillRectangle(0, GLCD_YPIXELS - 2, GLCD_XPIXELS, 2, ! inverted);
+  displayFillRectangle(0, DISPLAY_YPIXELS - 2, DISPLAY_XPIXELS, 2, ! inverted);
 
   // left paddle
-  glcdFillRectangle(LEFTPADDLE_X, leftpaddle_y, PADDLE_W, PADDLE_H, ! inverted);
+  displayFillRectangle(LEFTPADDLE_X, leftpaddle_y, PADDLE_W, PADDLE_H, ! inverted);
   // right paddle
-  glcdFillRectangle(RIGHTPADDLE_X, rightpaddle_y, PADDLE_W, PADDLE_H, ! inverted);
+  displayFillRectangle(RIGHTPADDLE_X, rightpaddle_y, PADDLE_W, PADDLE_H, ! inverted);
       
 	//left_score = time_h;
 	//right_score = time_m;
@@ -281,8 +280,8 @@ void step(void) {
     ball_dx = MAX_BALL_SPEED * cos(angle);
     ball_dy = MAX_BALL_SPEED * sin(angle);
 
-    glcdFillRectangle(LEFTPADDLE_X, left_keepout_top, PADDLE_W, left_keepout_bot - left_keepout_top, 0);
-    glcdFillRectangle(RIGHTPADDLE_X, right_keepout_top, PADDLE_W, right_keepout_bot - right_keepout_top, 0);
+    displayFillRectangle(LEFTPADDLE_X, left_keepout_top, PADDLE_W, left_keepout_bot - left_keepout_top, 0);
+    displayFillRectangle(RIGHTPADDLE_X, right_keepout_top, PADDLE_W, right_keepout_bot - right_keepout_top, 0);
 
     right_keepout_top = right_keepout_bot = 0;
     left_keepout_top = left_keepout_bot = 0;
@@ -391,7 +390,7 @@ void step(void) {
     }
 
     // draw the keepout area (for debugging
-    //glcdRectangle(RIGHTPADDLE_X, right_keepout_top, PADDLE_W, right_keepout_bot - right_keepout_top);
+    //displayRectangle(RIGHTPADDLE_X, right_keepout_top, PADDLE_W, right_keepout_bot - right_keepout_top);
     
     int8_t distance = rightpaddle_y - right_dest;
     
@@ -506,7 +505,7 @@ void step(void) {
       ticksremaining--;
     }
     // draw the keepout area (for debugging
-    //glcdRectangle(LEFTPADDLE_X, left_keepout_top, PADDLE_W, left_keepout_bot - left_keepout_top);
+    //displayRectangle(LEFTPADDLE_X, left_keepout_top, PADDLE_W, left_keepout_bot - left_keepout_top);
     
     int8_t distance = abs(leftpaddle_y - left_dest);
     
@@ -554,28 +553,28 @@ void step(void) {
 void drawmidline(uint8_t inverted) {
   uint8_t i;
   for (i=0; i < (SCREEN_H/8 - 1); i++) { 
-    glcdSetAddress((SCREEN_W-MIDLINE_W)/2, i);
+    displaySetAddress((SCREEN_W-MIDLINE_W)/2, i);
     if (inverted) {
-      glcdDataWrite(0xF0);
+      displayDataWrite(0xF0);
     } else {
-      glcdDataWrite(0x0F);  
+      displayDataWrite(0x0F);  
     }
   }
-  glcdSetAddress((SCREEN_W-MIDLINE_W)/2, i);
+  displaySetAddress((SCREEN_W-MIDLINE_W)/2, i);
   if (inverted) {
-    glcdDataWrite(0x20);  
+    displayDataWrite(0x20);  
   } else {
-    glcdDataWrite(0xCF);  
+    displayDataWrite(0xCF);  
   }
 }
 
 void draw(uint8_t inverted) {
 
     // erase old ball
-    glcdFillRectangle(oldball_x, oldball_y, ball_radius*2, ball_radius*2, inverted);
+    displayFillRectangle(oldball_x, oldball_y, ball_radius*2, ball_radius*2, inverted);
 
     // draw new ball
-    glcdFillRectangle(ball_x, ball_y, ball_radius*2, ball_radius*2, ! inverted);
+    displayFillRectangle(ball_x, ball_y, ball_radius*2, ball_radius*2, ! inverted);
 
     // draw middle lines around where the ball may have intersected it?
     if  (intersectrect(oldball_x, oldball_y, ball_radius*2, ball_radius*2,
@@ -589,20 +588,20 @@ void draw(uint8_t inverted) {
     
     if (oldleftpaddle_y != leftpaddle_y) {
       // clear left paddle
-      glcdFillRectangle(LEFTPADDLE_X, oldleftpaddle_y, PADDLE_W, PADDLE_H, inverted);
+      displayFillRectangle(LEFTPADDLE_X, oldleftpaddle_y, PADDLE_W, PADDLE_H, inverted);
       // draw left paddle
-      glcdFillRectangle(LEFTPADDLE_X, leftpaddle_y, PADDLE_W, PADDLE_H, !inverted);
+      displayFillRectangle(LEFTPADDLE_X, leftpaddle_y, PADDLE_W, PADDLE_H, !inverted);
     }
 
     if (oldrightpaddle_y != rightpaddle_y) {
       // clear right paddle
-      glcdFillRectangle(RIGHTPADDLE_X, oldrightpaddle_y, PADDLE_W, PADDLE_H, inverted);
+      displayFillRectangle(RIGHTPADDLE_X, oldrightpaddle_y, PADDLE_W, PADDLE_H, inverted);
       // draw right paddle
-      glcdFillRectangle(RIGHTPADDLE_X, rightpaddle_y, PADDLE_W, PADDLE_H, !inverted);
+      displayFillRectangle(RIGHTPADDLE_X, rightpaddle_y, PADDLE_W, PADDLE_H, !inverted);
     }
 
     if (intersectrect(oldball_x, oldball_y, ball_radius*2, ball_radius*2, RIGHTPADDLE_X, rightpaddle_y, PADDLE_W, PADDLE_H)) {
-      glcdFillRectangle(RIGHTPADDLE_X, rightpaddle_y, PADDLE_W, PADDLE_H, !inverted);
+      displayFillRectangle(RIGHTPADDLE_X, rightpaddle_y, PADDLE_W, PADDLE_H, !inverted);
     }
    // draw time
    uint8_t redraw_digits;
@@ -622,10 +621,10 @@ void draw(uint8_t inverted) {
     if (intersectrect(oldball_x, oldball_y, ball_radius*2, ball_radius*2,
 		      ALARMBOX_X, ALARMBOX_Y, ALARMBOX_W, ALARMBOX_H)) {
       
-      glcdFillRectangle(ALARMBOX_X+2, ALARMBOX_Y+2, ALARMBOX_W-4, ALARMBOX_H-4, OFF);
+      displayFillRectangle(ALARMBOX_X+2, ALARMBOX_Y+2, ALARMBOX_W-4, ALARMBOX_H-4, OFF);
 
-      glcdFillRectangle(ALARMBOX_X, ALARMBOX_Y, 2, ALARMBOX_H, ON);
-      glcdFillRectangle(ALARMBOX_X+ALARMBOX_W, ALARMBOX_Y, 2, ALARMBOX_H, ON);
+      displayFillRectangle(ALARMBOX_X, ALARMBOX_Y, 2, ALARMBOX_H, ON);
+      displayFillRectangle(ALARMBOX_X+ALARMBOX_W, ALARMBOX_Y, 2, ALARMBOX_H, ON);
     }
 
     if (!intersectrect(ball_x, ball_y, ball_radius*2, ball_radius*2,
@@ -654,7 +653,7 @@ uint8_t intersectrect(uint8_t x1, uint8_t y1, uint8_t w1, uint8_t h1,
 }
 
 // 8 pixels high
-static unsigned char __attribute__ ((progmem)) BigFont[] = {
+static const unsigned char __attribute__ ((progmem)) BigFont[] = {
 	0xFF, 0x81, 0x81, 0xFF,// 0
 	0x00, 0x00, 0x00, 0xFF,// 1
 	0x9F, 0x91, 0x91, 0xF1,// 2
@@ -668,7 +667,7 @@ static unsigned char __attribute__ ((progmem)) BigFont[] = {
 	0x00, 0x00, 0x00, 0x00,// SPACE
 };
 
-static unsigned char __attribute__ ((progmem)) MonthText[] = {
+static const unsigned char __attribute__ ((progmem)) MonthText[] = {
 	0,0,0,
 	'J','A','N',
 	'F','E','B',
@@ -684,7 +683,7 @@ static unsigned char __attribute__ ((progmem)) MonthText[] = {
 	'D','E','C',
 };
 
-static unsigned char __attribute__ ((progmem)) DOWText[] = {
+static const unsigned char __attribute__ ((progmem)) DOWText[] = {
 	'S','U','N',
 	'M','O','N',
 	'T','U','E',
@@ -718,7 +717,7 @@ void draw_score(uint8_t redraw_digits, uint8_t inverted) {
 			drawbigdigit(DISPLAY_H1_X, DISPLAY_TIME_Y, 10, inverted);
 			drawbigdigit(DISPLAY_M10_X, DISPLAY_TIME_Y, 10, inverted);
 			drawbigdigit(DISPLAY_M1_X, DISPLAY_TIME_Y, 10, inverted);
-			glcdFillRectangle(ball_x, ball_y, ball_radius*2, ball_radius*2, ! inverted);
+			displayFillRectangle(ball_x, ball_y, ball_radius*2, ball_radius*2, ! inverted);
 			prev_mode = SCORE_MODE_DOW;
 		}
 		
@@ -749,7 +748,7 @@ void draw_score(uint8_t redraw_digits, uint8_t inverted) {
 			  drawbigdigit(DISPLAY_M10_X, DISPLAY_TIME_Y, 10, inverted);
 			  drawbigdigit(DISPLAY_M1_X, DISPLAY_TIME_Y, 10, inverted);
 		    }
-			glcdFillRectangle(ball_x, ball_y, ball_radius*2, ball_radius*2, ! inverted);
+			displayFillRectangle(ball_x, ball_y, ball_radius*2, ball_radius*2, ! inverted);
 			prev_mode = SCORE_MODE_DATELONG;
 		}
 		if(redraw_digits || intersectrect(oldball_x, oldball_y, ball_radius*2, ball_radius*2,
@@ -794,7 +793,7 @@ void draw_score(uint8_t redraw_digits, uint8_t inverted) {
 			  drawbigdigit(DISPLAY_M10_X, DISPLAY_TIME_Y, 10, inverted);
 			  drawbigdigit(DISPLAY_M1_X, DISPLAY_TIME_Y, 10, inverted);
 		    }
-			glcdFillRectangle(ball_x, ball_y, ball_radius*2, ball_radius*2, ! inverted);
+			displayFillRectangle(ball_x, ball_y, ball_radius*2, ball_radius*2, ! inverted);
 			prev_mode = SCORE_MODE_TIME;
 		}
 	  if (redraw_digits || intersectrect(oldball_x, oldball_y, ball_radius*2, ball_radius*2,
@@ -834,9 +833,9 @@ void drawbigdigit(uint8_t x, uint8_t y, uint8_t n, uint8_t inverted) {
     uint8_t d = pgm_read_byte(BigFont+(n*4)+i);
     for (j=0; j<8; j++) {
       if (d & _BV(7-j)) {
-	glcdFillRectangle(x+i*2, y+j*2, 2, 2, !inverted);
+	displayFillRectangle(x+i*2, y+j*2, 2, 2, !inverted);
       } else {
-	glcdFillRectangle(x+i*2, y+j*2, 2, 2, inverted);
+	displayFillRectangle(x+i*2, y+j*2, 2, 2, inverted);
       }
     }
   }
@@ -849,9 +848,9 @@ void drawbigfont(uint8_t x, uint8_t y, uint8_t n, uint8_t inverted) {
     uint8_t d = pgm_read_byte(Font5x7+((n-0x20)*5)+i);
     for (j=0; j<7; j++) {
       if (d & _BV(j)) {
-	glcdFillRectangle(x+i*2, y+j*2, 2, 2, !inverted);
+	displayFillRectangle(x+i*2, y+j*2, 2, 2, !inverted);
       } else {
-	glcdFillRectangle(x+i*2, y+j*2, 2, 2, inverted);
+	displayFillRectangle(x+i*2, y+j*2, 2, 2, inverted);
       }
     }
   }

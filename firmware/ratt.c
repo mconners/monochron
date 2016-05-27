@@ -7,6 +7,7 @@
 
 #include <avr/io.h>      // this contains all the IO port definitions
 #include <avr/interrupt.h>
+#define __DELAY_BACKWARD_COMPATIBLE__
 #include <util/delay.h>
 #include <avr/pgmspace.h>
 #include <avr/eeprom.h>
@@ -16,8 +17,7 @@
 #include <stdlib.h>
 #include "util.h"
 #include "ratt.h"
-#include "ks0108.h"
-#include "glcd.h"
+#include "displayAdapter.h"
 
 
 volatile uint8_t time_s, time_m, time_h;
@@ -99,7 +99,7 @@ int main(void) {
   mcustate = MCUSR;
   MCUSR = 0;
   
-  //Just in case we were reset inside of the glcd init function
+  //Just in case we were reset inside of the display init function
   //which would happen if the lcd is not plugged in. The end result
   //of that, is it will beep, pause, for as long as there is no lcd
   //plugged in.
@@ -146,13 +146,13 @@ int main(void) {
   DDRB |= _BV(5);
   beep(4000, 100);
   
-  //glcdInit locks and disables interrupts in one of its functions.  If the LCD is not
-  //plugged in, glcd will run forever.  For good reason, it would be desirable to know
+  //displayInit locks and disables interrupts in one of its functions.  If the LCD is not
+  //plugged in, display will run forever.  For good reason, it would be desirable to know
   //that the LCD is plugged in and working correctly as a result.  This is why we are
   //using a watch dog timer.  The lcd should initialized in way less than 500 ms.
   wdt_enable(WDTO_2S);
-  glcdInit();
-  glcdClearScreen();
+  displayInit();
+  displayClearScreen();
 
   initanim();
   initdisplay(0);
@@ -277,12 +277,12 @@ int main(void) {
 #endif
       default:
 	displaymode = SHOW_TIME;
-	glcdClearScreen();
+	displayClearScreen();
 	initdisplay(0);
       }
 
       if (displaymode == SHOW_TIME) {
-	glcdClearScreen();
+	displayClearScreen();
 	initdisplay(0);
       }
     }
@@ -364,17 +364,17 @@ void setalarmstate(void) {
 
 
 void drawArrow(uint8_t x, uint8_t y, uint8_t l) {
-  glcdFillRectangle(x, y, l, 1, ON);
-  glcdSetDot(x+l-2,y-1);
-  glcdSetDot(x+l-2,y+1);
-  glcdSetDot(x+l-3,y-2);
-  glcdSetDot(x+l-3,y+2);
+  displayFillRectangle(x, y, l, 1, ON);
+  displaySetDot(x+l-2,y-1);
+  displaySetDot(x+l-2,y+1);
+  displaySetDot(x+l-3,y-2);
+  displaySetDot(x+l-3,y+2);
 }
 
 
 void printnumber(uint8_t n, uint8_t inverted) {
-  glcdWriteChar(n/10+'0', inverted);
-  glcdWriteChar(n%10+'0', inverted);
+  displayWriteChar(n/10+'0', inverted);
+  displayWriteChar(n%10+'0', inverted);
 }
 
 uint8_t readi2ctime(void) {
@@ -526,19 +526,19 @@ SIGNAL (TIMER2_OVF_vect) {
        (displaymode == SET_REGION) ||
        (displaymode == SET_BRIGHTNESS)) &&
       (!screenmutex) ) {
-      glcdSetAddress(MENU_INDENT + 10*6, 2);
+      displaySetAddress(MENU_INDENT + 10*6, 2);
       print_timehour(time_h, NORMAL);
-      glcdWriteChar(':', NORMAL);
+      displayWriteChar(':', NORMAL);
       printnumber(time_m, NORMAL);
-      glcdWriteChar(':', NORMAL);
+      displayWriteChar(':', NORMAL);
       printnumber(time_s, NORMAL);
 
       if (time_format == TIME_12H) {
-	glcdWriteChar(' ', NORMAL);
+	displayWriteChar(' ', NORMAL);
 	if (time_h >= 12) {
-	  glcdWriteChar('P', NORMAL);
+	  displayWriteChar('P', NORMAL);
 	} else {
-	  glcdWriteChar('A', NORMAL);
+	  displayWriteChar('A', NORMAL);
 	}
       }
   }
